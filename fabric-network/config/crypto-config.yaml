@@ -1,0 +1,42 @@
+################################################################################
+# Orderer Organization (operated by the consortium founders)
+################################################################################
+OrdererOrgs:
+  - Name: Orderer
+    Domain: wattledger.com
+    EnableNodeOUs: true
+
+    Specs:
+      - Hostname: orderer
+
+################################################################################
+# Peer Organizations
+#   Utility     -> Distribution System Operator (DSO), primary endorser
+#   Installer   -> Certified solar installers (provision IoT smart meters)
+#   Consortium  -> WattLedger platform operator / founders
+################################################################################
+PeerOrgs:
+
+  - Name: Utility
+    Domain: utility.wattledger.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 1
+
+  - Name: Installer
+    Domain: installer.wattledger.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 1
+
+  - Name: Consortium
+    Domain: consortium.wattledger.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 1

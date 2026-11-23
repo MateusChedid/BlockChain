@@ -1,0 +1,183 @@
+Organizations:
+    - &OrdererOrg
+        Name: OrdererOrg
+        ID: OrdererMSP
+        MSPDir: crypto-config/ordererOrganizations/wattledger.com/msp
+        Policies:
+            Readers: &OrdererPolicies
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Writers: *OrdererPolicies
+            Admins:  *OrdererPolicies
+        OrdererEndpoints:
+            - orderer.wattledger.com:7050
+
+    - &UtilityOrg
+        Name: UtilityOrg
+        ID: UtilityMSP
+        MSPDir: crypto-config/peerOrganizations/utility.wattledger.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('UtilityMSP.admin', 'UtilityMSP.peer', 'UtilityMSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('UtilityMSP.admin', 'UtilityMSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('UtilityMSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('UtilityMSP.peer')"
+        AnchorPeers:
+            - Host: peer0.utility.wattledger.com
+              Port: 7051
+
+    - &InstallerOrg
+        Name: InstallerOrg
+        ID: InstallerMSP
+        MSPDir: crypto-config/peerOrganizations/installer.wattledger.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('InstallerMSP.admin', 'InstallerMSP.peer', 'InstallerMSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('InstallerMSP.admin', 'InstallerMSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('InstallerMSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('InstallerMSP.peer')"
+        AnchorPeers:
+            - Host: peer0.installer.wattledger.com
+              Port: 9051
+
+    - &ConsortiumOrg
+        Name: ConsortiumOrg
+        ID: ConsortiumMSP
+        MSPDir: crypto-config/peerOrganizations/consortium.wattledger.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('ConsortiumMSP.admin', 'ConsortiumMSP.peer', 'ConsortiumMSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('ConsortiumMSP.admin', 'ConsortiumMSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('ConsortiumMSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('ConsortiumMSP.peer')"
+        AnchorPeers:
+            - Host: peer0.consortium.wattledger.com
+              Port: 11051
+
+Capabilities:
+    Channel: &ChannelCapabilities
+        V2_0: true
+    Orderer: &OrdererCapabilities
+        V2_0: true
+    Application: &ApplicationCapabilities
+        V2_5: true
+
+Application: &ApplicationDefaults
+    Organizations:
+      - *UtilityOrg
+      - *InstallerOrg
+      - *ConsortiumOrg
+
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+        # Chaincode definitions must be approved by a majority of organizations.
+        LifecycleEndorsement:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Endorsement"
+        # Every transaction must be endorsed by at least 2 of the 3 organizations.
+        Endorsement:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Endorsement"
+    Capabilities:
+        <<: *ApplicationCapabilities
+
+# The MVP uses a single Raft orderer. The production design (white paper)
+# uses a SmartBFT ordering cluster, available in Hyperledger Fabric v3.
+Orderer: &OrdererDefaults
+    OrdererType: etcdraft
+    Addresses:
+        - orderer.wattledger.com:7050
+    EtcdRaft:
+        Consenters:
+        - Host: orderer.wattledger.com
+          Port: 7050
+          ClientTLSCert: crypto-config/ordererOrganizations/wattledger.com/orderers/orderer.wattledger.com/tls/server.crt
+          ServerTLSCert: crypto-config/ordererOrganizations/wattledger.com/orderers/orderer.wattledger.com/tls/server.crt
+    BatchTimeout: 1s
+    BatchSize:
+        MaxMessageCount: 50
+        AbsoluteMaxBytes: 99 MB
+        PreferredMaxBytes: 512 KB
+    Organizations:
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+        BlockValidation:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+
+Channel: &ChannelDefaults
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+    Capabilities:
+        <<: *ChannelCapabilities
+
+Profiles:
+    WattLedgerGenesis:
+        <<: *ChannelDefaults
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+            Capabilities:
+                <<: *OrdererCapabilities
+        Consortiums:
+            WattLedgerConsortium:
+                Organizations:
+                    - *UtilityOrg
+                    - *InstallerOrg
+                    - *ConsortiumOrg
+
+    EnergyChannelProfile:
+        <<: *ChannelDefaults
+        Consortium: WattLedgerConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *UtilityOrg
+                - *InstallerOrg
+                - *ConsortiumOrg

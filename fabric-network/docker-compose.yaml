@@ -1,0 +1,155 @@
+networks:
+  fabric-network:
+    name: fabric-network
+
+services:
+  orderer.wattledger.com:
+    container_name: orderer.wattledger.com
+    hostname: orderer.wattledger.com
+    image: hyperledger/fabric-orderer:2.5
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=file
+      - ORDERER_GENERAL_BOOTSTRAPFILE=/var/hyperledger/orderer/orderer.genesis.block
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+      - ./system-genesis-block/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ./config/crypto-config/ordererOrganizations/wattledger.com/orderers/orderer.wattledger.com/msp:/var/hyperledger/orderer/msp
+      - ./config/crypto-config/ordererOrganizations/wattledger.com/orderers/orderer.wattledger.com/tls:/var/hyperledger/orderer/tls
+      - ordererdata:/var/hyperledger/production/orderer
+    ports:
+      - "7050:7050"
+    networks:
+      - fabric-network
+
+  peer0.utility.wattledger.com:
+    container_name: peer0.utility.wattledger.com
+    hostname: peer0.utility.wattledger.com
+    image: hyperledger/fabric-peer:2.5
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.utility.wattledger.com
+      - CORE_PEER_ADDRESS=peer0.utility.wattledger.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.utility.wattledger.com:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_LOCALMSPID=UtilityMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.utility.wattledger.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.utility.wattledger.com:7051
+      - CORE_CHAINCODE_STARTUPTIMEOUT=300s
+      - CORE_LEDGER_STATE_STATEDATABASE=goleveldb
+      - CORE_LEDGER_HISTORY_ENABLEHISTORYDATABASE=true
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric-network
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: peer node start
+    volumes:
+      - ./config/crypto-config/peerOrganizations/utility.wattledger.com/peers/peer0.utility.wattledger.com/msp:/etc/hyperledger/fabric/msp
+      - ./config/crypto-config/peerOrganizations/utility.wattledger.com/peers/peer0.utility.wattledger.com/tls:/etc/hyperledger/fabric/tls
+      - peer0-utility-data:/var/hyperledger/production
+      - /var/run/docker.sock:/host/var/run/docker.sock
+    ports:
+      - "7051:7051"
+    depends_on:
+      - orderer.wattledger.com
+    networks:
+      - fabric-network
+
+  peer0.installer.wattledger.com:
+    container_name: peer0.installer.wattledger.com
+    hostname: peer0.installer.wattledger.com
+    image: hyperledger/fabric-peer:2.5
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.installer.wattledger.com
+      - CORE_PEER_ADDRESS=peer0.installer.wattledger.com:9051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.installer.wattledger.com:9052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
+      - CORE_PEER_LOCALMSPID=InstallerMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.installer.wattledger.com:9051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.installer.wattledger.com:9051
+      - CORE_CHAINCODE_STARTUPTIMEOUT=300s
+      - CORE_LEDGER_STATE_STATEDATABASE=goleveldb
+      - CORE_LEDGER_HISTORY_ENABLEHISTORYDATABASE=true
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric-network
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: peer node start
+    volumes:
+      - ./config/crypto-config/peerOrganizations/installer.wattledger.com/peers/peer0.installer.wattledger.com/msp:/etc/hyperledger/fabric/msp
+      - ./config/crypto-config/peerOrganizations/installer.wattledger.com/peers/peer0.installer.wattledger.com/tls:/etc/hyperledger/fabric/tls
+      - peer0-installer-data:/var/hyperledger/production
+      - /var/run/docker.sock:/host/var/run/docker.sock
+    ports:
+      - "9051:9051"
+    depends_on:
+      - orderer.wattledger.com
+    networks:
+      - fabric-network
+
+  peer0.consortium.wattledger.com:
+    container_name: peer0.consortium.wattledger.com
+    hostname: peer0.consortium.wattledger.com
+    image: hyperledger/fabric-peer:2.5
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.consortium.wattledger.com
+      - CORE_PEER_ADDRESS=peer0.consortium.wattledger.com:11051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:11051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.consortium.wattledger.com:11052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:11052
+      - CORE_PEER_LOCALMSPID=ConsortiumMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.consortium.wattledger.com:11051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.consortium.wattledger.com:11051
+      - CORE_CHAINCODE_STARTUPTIMEOUT=300s
+      - CORE_LEDGER_STATE_STATEDATABASE=goleveldb
+      - CORE_LEDGER_HISTORY_ENABLEHISTORYDATABASE=true
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric-network
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: peer node start
+    volumes:
+      - ./config/crypto-config/peerOrganizations/consortium.wattledger.com/peers/peer0.consortium.wattledger.com/msp:/etc/hyperledger/fabric/msp
+      - ./config/crypto-config/peerOrganizations/consortium.wattledger.com/peers/peer0.consortium.wattledger.com/tls:/etc/hyperledger/fabric/tls
+      - peer0-consortium-data:/var/hyperledger/production
+      - /var/run/docker.sock:/host/var/run/docker.sock
+    ports:
+      - "11051:11051"
+    depends_on:
+      - orderer.wattledger.com
+    networks:
+      - fabric-network
+
+volumes:
+  ordererdata:
+  peer0-utility-data:
+  peer0-installer-data:
+  peer0-consortium-data:

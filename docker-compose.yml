@@ -1,0 +1,38 @@
+# WattLedger application layer: REST API (Go) + Web portal (React/Nginx).
+# Start the Fabric network first: ./fabric-network/deploy-network.sh
+networks:
+  fabric-network:
+    name: fabric-network
+    external: true
+
+volumes:
+  api-data:
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: ./Dockerfile
+    container_name: wattledger-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./api/application.yaml:/app/application.yaml:ro
+      - ./fabric-network/config/crypto-config:/app/crypto-config:ro
+      - api-data:/app/data
+    networks:
+      - fabric-network
+
+  web:
+    build:
+      context: ./web
+      dockerfile: ./Dockerfile
+    container_name: wattledger-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    networks:
+      - fabric-network

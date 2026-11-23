@@ -1,0 +1,969 @@
+{
+  "info": {
+    "name": "WattLedger API (PD3)",
+    "description": "Demonstrated scope: measurement, reconciliation, audit and simulated billing. Future scope (sandbox): P2P trading. Header X-Org = utility | installer | consortium.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "cycle",
+      "value": "2026-11"
+    }
+  ],
+  "item": [
+    {
+      "name": "Network",
+      "item": [
+        {
+          "name": "Network info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/network",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "network"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Governance",
+      "item": [
+        {
+          "name": "Onboard member (consortium)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "consortium"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/governance/members",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "governance",
+                "members"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberID\": \"utility-dso\",\n  \"mspID\": \"UtilityMSP\",\n  \"displayName\": \"Distribution Utility (DSO)\",\n  \"role\": \"utility\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List members",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/governance/members",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "governance",
+                "members"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get tariffs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/governance/tariffs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "governance",
+                "tariffs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update tariffs (utility)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "utility"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/governance/tariffs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "governance",
+                "tariffs"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distributor\": \"Celesc-DIS (reference values)\",\n  \"teBRL\": 0.32193,\n  \"tusdBRL\": 0.37375,\n  \"fioBBRL\": 0.2,\n  \"fioBPct\": 60,\n  \"availabilityKWh\": 50,\n  \"tolerancePct\": 5\n}"
+            }
+          }
+        },
+        {
+          "name": "Update tariffs as installer (denied)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "installer"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/governance/tariffs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "governance",
+                "tariffs"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teBRL\": 0.1,\n  \"tusdBRL\": 0.1,\n  \"fioBBRL\": 0.05,\n  \"fioBPct\": 0,\n  \"availabilityKWh\": 0,\n  \"tolerancePct\": 50\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Measurement (demonstrated)",
+      "item": [
+        {
+          "name": "Register meter (installer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "installer"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/meters",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "meters"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meterID\": \"M-ALICE-01\",\n  \"owner\": \"alice\",\n  \"consumerUnit\": \"UC-1001\",\n  \"substation\": \"SUB-01\",\n  \"capacityKWp\": 4\n}"
+            }
+          }
+        },
+        {
+          "name": "List meters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/meters",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "meters"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Honest weekly batch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "utility"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/meters/M-ALICE-01/readings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "meters",
+                "M-ALICE-01",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenario\": \"honest\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Compromised sensor (+40%, valid signature)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "utility"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/meters/M-ALICE-01/readings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "meters",
+                "M-ALICE-01",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenario\": \"compromised\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Implausible value (quarantined)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "utility"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/meters/M-ALICE-01/readings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "meters",
+                "M-ALICE-01",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenario\": \"gross\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Impossible value (rejected)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "utility"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/meters/M-ALICE-01/readings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "meters",
+                "M-ALICE-01",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenario\": \"impossible\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Tampered in transit (rejected)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "utility"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/meters/M-ALICE-01/readings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "meters",
+                "M-ALICE-01",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenario\": \"tamper\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cloned device (rejected)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "utility"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/meters/M-ALICE-01/readings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "meters",
+                "M-ALICE-01",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenario\": \"forged\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Replay (rejected)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "utility"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/meters/M-ALICE-01/readings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "meters",
+                "M-ALICE-01",
+                "readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenario\": \"replay\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Simulator status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/simulator/M-ALICE-01",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "simulator",
+                "M-ALICE-01"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List readings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/readings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "readings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Meter health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/meter-states",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "meter-states"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Reconciliation and audit (demonstrated)",
+      "item": [
+        {
+          "name": "Audit report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/audit?cycle={{cycle}}&substation=SUB-01",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "audit"
+              ],
+              "query": [
+                {
+                  "key": "cycle",
+                  "value": "{{cycle}}"
+                },
+                {
+                  "key": "substation",
+                  "value": "SUB-01"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reconcile with revenue meter (utility)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "utility"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reconciliations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reconciliations"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meterID\": \"M-ALICE-01\",\n  \"cycle\": \"{{cycle}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reconcile as installer (denied)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "installer"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reconciliations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reconciliations"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"meterID\": \"M-ALICE-01\",\n  \"cycle\": \"{{cycle}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List reconciliations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reconciliations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reconciliations"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Simulated billing (demonstrated)",
+      "item": [
+        {
+          "name": "Simulate bill (utility)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "utility"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/billing/simulate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "billing",
+                "simulate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner\": \"alice\",\n  \"cycle\": \"{{cycle}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List statements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/billing/statements",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "billing",
+                "statements"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/accounts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "accounts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Account",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/accounts/alice",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "accounts",
+                "alice"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Account ledger history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/accounts/alice/history",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "accounts",
+                "alice",
+                "history"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. P2P sandbox (future, legally dependent)",
+      "item": [
+        {
+          "name": "Sandbox config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/governance/sandbox",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "governance",
+                "sandbox"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ask while disabled (refused)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "utility"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sandbox/asks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sandbox",
+                "asks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner\": \"alice\",\n  \"substation\": \"SUB-01\",\n  \"quantity\": 5,\n  \"priceBRL\": 0.62\n}"
+            }
+          }
+        },
+        {
+          "name": "Enable sandbox simulation (utility)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "utility"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/governance/sandbox",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "governance",
+                "sandbox"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true,\n  \"reference\": \"ANEEL sandbox simulation (demo)\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Price band (derived from tariffs)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/governance/price-band",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "governance",
+                "price-band"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sandbox bid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "utility"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sandbox/bids",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sandbox",
+                "bids"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner\": \"carla\",\n  \"substation\": \"SUB-01\",\n  \"quantity\": 3,\n  \"priceBRL\": 0.65\n}"
+            }
+          }
+        },
+        {
+          "name": "Sandbox orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sandbox/orders",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sandbox",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sandbox trades",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sandbox/trades",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sandbox",
+                "trades"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Disable sandbox",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Org",
+                "value": "utility"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/governance/sandbox",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "governance",
+                "sandbox"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": false,\n  \"reference\": \"\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (off-chain)",
+      "item": [
+        {
+          "name": "List users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"alice\",\n  \"displayName\": \"Alice Souza\",\n  \"type\": \"prosumer\",\n  \"substation\": \"SUB-01\",\n  \"consumerUnit\": \"UC-1001\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

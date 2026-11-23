@@ -1,0 +1,37 @@
+# WattLedger API - Fabric Gateway connection settings.
+# The API holds one identity per consortium organization, so the demo can show
+# MSP-based access control (send the "X-Org" header: utility | installer | consortium).
+channel: energychannel
+defaultOrg: utility
+
+chaincodes:
+  governance: governance-cc
+  energy: energy-cc
+
+orgs:
+  - name: utility
+    displayName: Distribution Utility (DSO)
+    mspID: UtilityMSP
+    peerEndpoint: peer0.utility.wattledger.com:7051
+    peerHostOverride: peer0.utility.wattledger.com
+    tlsCACert: /app/crypto-config/peerOrganizations/utility.wattledger.com/peers/peer0.utility.wattledger.com/tls/ca.crt
+    certPath: /app/crypto-config/peerOrganizations/utility.wattledger.com/users/Admin@utility.wattledger.com/msp/signcerts/Admin@utility.wattledger.com-cert.pem
+    keyPath: /app/crypto-config/peerOrganizations/utility.wattledger.com/users/Admin@utility.wattledger.com/msp/keystore/priv_sk
+
+  - name: installer
+    displayName: Certified Solar Installer
+    mspID: InstallerMSP
+    peerEndpoint: peer0.installer.wattledger.com:9051
+    peerHostOverride: peer0.installer.wattledger.com
+    tlsCACert: /app/crypto-config/peerOrganizations/installer.wattledger.com/peers/peer0.installer.wattledger.com/tls/ca.crt
+    certPath: /app/crypto-config/peerOrganizations/installer.wattledger.com/users/Admin@installer.wattledger.com/msp/signcerts/Admin@installer.wattledger.com-cert.pem
+    keyPath: /app/crypto-config/peerOrganizations/installer.wattledger.com/users/Admin@installer.wattledger.com/msp/keystore/priv_sk
+
+  - name: consortium
+    displayName: WattLedger Consortium (Operator)
+    mspID: ConsortiumMSP
+    peerEndpoint: peer0.consortium.wattledger.com:11051
+    peerHostOverride: peer0.consortium.wattledger.com
+    tlsCACert: /app/crypto-config/peerOrganizations/consortium.wattledger.com/peers/peer0.consortium.wattledger.com/tls/ca.crt
+    certPath: /app/crypto-config/peerOrganizations/consortium.wattledger.com/users/Admin@consortium.wattledger.com/msp/signcerts/Admin@consortium.wattledger.com-cert.pem
+    keyPath: /app/crypto-config/peerOrganizations/consortium.wattledger.com/users/Admin@consortium.wattledger.com/msp/keystore/priv_sk
